@@ -11,7 +11,9 @@ const Dashboard: React.FC = () => {
 
   return (
     <AdminLayout>
-      <div>Dashboard</div>
+      <div className='p-8'>
+        <h3 className='text-lg font-semibold pb-8'>Dashboard</h3>
+      </div>
     </AdminLayout>
   );
 };
