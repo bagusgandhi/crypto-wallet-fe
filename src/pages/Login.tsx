@@ -31,7 +31,7 @@ const Login: React.FC = () => {
             >
               {/* username */}
               <Form.Item
-                name="email"
+                name="username"
                 rules={[{ required: true, message: 'Please input your username!' }]}
               >
                 <Input prefix={<UserOutlined />} placeholder="Username" />
