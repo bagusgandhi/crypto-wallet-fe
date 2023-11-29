@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Layout, Menu, Affix } from "antd";
 import {
     DashboardOutlined,
@@ -14,13 +14,9 @@ const { Sider } = Layout;
 const Sidebar: React.FC = () => {
     const { collapsed, setSelectedMenu, selectedMenu } = useDashboardStore();
 
-    useEffect(() => {
-        console.log(selectedMenu)
-    }, [selectedMenu]);
-
     return (
         <Affix offsetTop={0}>
-            <Sider trigger={null} className="!h-screen !bg-slate-50 z-10" collapsible collapsed={collapsed}>
+            <Sider trigger={null} className="!h-screen border-r-2 border-black border-opacity-5 !bg-slate-50 z-20" collapsible collapsed={collapsed}>
                 <div className="p-3 text-white text-lg bg-blue-400 justify-center m-3 rounded-md flex items-center gap-2">
                     <DollarOutlined />
                     {collapsed ? (<></>) : (<h3>Crypto Wallet</h3>)}
