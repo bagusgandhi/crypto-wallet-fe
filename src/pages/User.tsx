@@ -11,7 +11,9 @@ const Users: React.FC = () => {
 
   return (
     <AdminLayout>
-      <div>Users</div>
+      <div className='p-8'>
+        <h3 className='text-lg font-semibold pb-8'>Users</h3>
+      </div>
     </AdminLayout>
   );
 };
