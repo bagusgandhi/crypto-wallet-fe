@@ -1,20 +1,98 @@
-import React, { useEffect, useState } from 'react';
-import { Space, Table, Tag } from 'antd';
+import React, { useEffect, useRef } from 'react';
+import { Affix, Card, Select, Table, Tag } from 'antd';
 import AdminLayout from '../layouts/Admin';
 import { useDashboardStore } from '../store/dashboard';
 import type { ColumnsType } from 'antd/es/table';
+import { useTransactionLog, useTransactionReport } from '../services/transactionService';
+import ApexCharts from 'apexcharts';
+import useTransactionStore from '../store/transaction';
+import Pagination from '../components/Pagination';
+import { DatePicker } from 'antd';
+
+const { RangePicker } = DatePicker;
 
 const Transactions: React.FC = () => {
   const { setSelectedMenu, showDetail, setshowDetail, setDetailKey, detailKey } = useDashboardStore();
-  const [dataChart, setDataChart] = useState<any[]>([]); 
+  const { series, log, nextLogPage, prevLogPage, logPage, totalLogPage, setLogPage } = useTransactionStore();
+  const chartRef = useRef(null);
+
+  const fetchReport = async () => {
+    try {
+      await useTransactionReport();
+    } catch (error) {
+      console.log("error", error);
+    }
+  }
+
+  const fetchLog = async () => {
+    try {
+      await useTransactionLog({ page: logPage, limit: 10 });
+    } catch (error) {
+      console.log("error", error);
+    }
+  }
 
   useEffect(() => {
     setSelectedMenu("transactions");
-  }, [])
+    fetchReport();
+    fetchLog()
+  }, [logPage])
+
+  useEffect(() => {
+
+    const options = {
+      series: [{
+        name: 'transfer',
+        data: series ? series[0]['data'].map((data: Array<any>) => data[0]) : []
+      }, {
+        name: 'topup',
+        data: series ? series[1]['data'].map((data: Array<any>) => data[0]) : []
+      }],
+      chart: {
+        height: 350,
+        type: 'area'
+      },
+      dataLabels: {
+        enabled: false
+      },
+      stroke: {
+        curve: 'smooth'
+      },
+      xaxis: {
+        type: 'datetime',
+        categories: series ? [...series[0]['data'].map((data: Array<any>) => data[1]), ...series[1]['data'].map((data: Array<any>) => data[1])] : []
+      },
+      tooltip: {
+        x: {
+          format: 'dd/MM/yy HH:mm'
+        },
+      },
+    };
+
+
+    const chart = new ApexCharts(chartRef.current, options);
+    chart.render();
+
+    return () => {
+      chart.destroy();
+    };
+  }, [series, showDetail]);
+
+
+  const handlePrevPage = () => {
+    prevLogPage()
+  }
+
+  const handleNextPage = () => {
+    nextLogPage()
+  }
 
   interface DataType {
     key: string;
-    username: string;
+    user: {
+      id: string;
+      username: string
+    };
     transaction_type: string;
     amount: number;
     timestamp: string;
@@ -23,9 +101,9 @@ const Transactions: React.FC = () => {
   const columns: ColumnsType<DataType> = [
     {
       title: 'Username',
-      dataIndex: 'username',
-      key: 'username',
-      render: (text) => <a>{text}</a>,
+      dataIndex: 'user',
+      key: 'user',
+      render: (text) => <a>{text.username}</a>,
     },
     {
       title: 'Amount',
@@ -51,56 +129,70 @@ const Transactions: React.FC = () => {
     },
   ];
 
-  const data: DataType[] = [
-    {
-      key: '1',
-      username: 'johndoe',
-      amount: 32000,
-      transaction_type: 'topup',
-      timestamp: '2023-11-26 08:56:47.418',
-    },
-    {
-      key: '2',
-      username: 'johndoe',
-      amount: -12000,
-      transaction_type: 'transfer',
-      timestamp: '2023-11-26 08:56:47.418',
-    },
-
-  ];
-
-
   return (
     <AdminLayout>
       <div className='flex'>
         <div className={`${showDetail ? 'w-1/2' : 'w-full'}`}>
-          <h3 className='text-lg'>Transactions</h3>
-          <div className='p-4'>
+          <div className='p-8'>
+            <h3 className='text-lg font-semibold pb-8'>Transactions</h3>
+            <Card className='bg-blue-50'>
+              <div className='flex gap-4 items-center'>
+                <RangePicker />
+                <Select
+                  defaultValue="topup"
+                  style={{ width: 120 }}
+                  onChange={(value: string) => console.log(value)}
+                  options={[
+                    { value: 'topup', label: 'Topup' },
+                    { value: 'transfer', label: 'Transfer' },
+                  ]}
+                />
+              </div>
+            </Card>
+            <div ref={chartRef} className='my-4 !z-0'></div>
             <Table
               columns={columns}
-              dataSource={data}
+              dataSource={log!}
+              pagination={false}
               onRow={(_record) => {
                 return {
                   onClick: () => {
-                    if (detailKey !== _record.key) {
-                      setDetailKey(_record.key);
+                    if (detailKey !== _record.id) {
+                      console.log(_record.user.id)
+                      setDetailKey(_record.id);
                       setshowDetail(true);
                     } else {
                       setDetailKey(null);
                       setshowDetail(!showDetail);
                     }
-                    console.log(detailKey)
+                    // console.log(detailKey)
                   },
                 };
               }}
+            />
+            <Pagination
+              onPageChange={(page: number) => setLogPage(page)}
+              totalPage={totalLogPage}
+              page={logPage} onNextPage={() => handleNextPage()}
+              onPrevPage={() => handlePrevPage()}
             />
           </div>
         </div>
 
         {showDetail ? (
-          <div className='bg-blue-50 p-4 w-1/2 h-screen'>
+          <Affix offsetTop={75} className='!bg-blue-50  w-1/2 z-20'>
+            <div className='p-8'>
+              <div className='flex gap-4'>
 
-          </div>
+                <h4>Transaction Detail</h4>
+              </div>
+
+              <div className='flex gap-4'>
+
+                <h4>Transaction History</h4>
+              </div>
+            </div>
+          </Affix>
         ) : (<></>)}
 
 
