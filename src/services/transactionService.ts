@@ -2,12 +2,22 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import useTransactionStore from '../store/transaction';
 
-export const useTransactionReport = async () => {
+
+interface TransactionParams {
+    page?: number;
+    limit?: number;
+    user_id?: string;
+    transaction_type: string | null;
+    from: string | null;
+    to: string | null;
+  }
+
+export const useTransactionReport = async (params: TransactionParams) => {
     try {
         const token = Cookies.get('token');
         const response = await axios.get('http://localhost:3000/api/v1/transactions/report', {
             headers: { Authorization: `Bearer ${token}` },
-            // params: { ...params}
+            params: { ...params}
         });
 
         useTransactionStore.getState().setSeries(response.data.series);
@@ -19,13 +29,7 @@ export const useTransactionReport = async () => {
     }
 }
 
-interface TransactionLogParams {
-    page: number;
-    limit: number;
-    // Add other parameters as needed
-  }
-
-export const useTransactionLog = async (params: TransactionLogParams) => {
+export const useTransactionLog = async (params: TransactionParams) => {
     try {
         const token = Cookies.get('token');
         const response = await axios.get('http://localhost:3000/api/v1/transactions/log', {
