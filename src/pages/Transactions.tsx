@@ -30,7 +30,7 @@ const Transactions: React.FC = () => {
 
   const fetchReport = async () => {
     try {
-      await useTransactionReport();
+      await useTransactionReport({ from: date && date.split('_')[0], to: date && date.split('_')[1], transaction_type: transactionType });
     } catch (error) {
       console.log("error", error);
     }
