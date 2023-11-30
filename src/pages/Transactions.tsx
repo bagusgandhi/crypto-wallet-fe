@@ -13,7 +13,19 @@ const { RangePicker } = DatePicker;
 
 const Transactions: React.FC = () => {
   const { setSelectedMenu, showDetail, setshowDetail, setDetailKey, detailKey } = useDashboardStore();
-  const { series, log, nextLogPage, prevLogPage, logPage, totalLogPage, setLogPage } = useTransactionStore();
+  const { 
+      series, 
+      log, 
+      nextLogPage, 
+      prevLogPage, 
+      logPage, 
+      totalLogPage, 
+      setLogPage, 
+      date, 
+      setDate, 
+      transactionType,
+      setTransactionType
+     } = useTransactionStore();
   const chartRef = useRef(null);
 
   const fetchReport = async () => {
@@ -26,7 +38,7 @@ const Transactions: React.FC = () => {
 
   const fetchLog = async () => {
     try {
-      await useTransactionLog({ page: logPage, limit: 10 });
+      await useTransactionLog({ from: date && date.split('_')[0], to: date && date.split('_')[1], transaction_type: transactionType, page: logPage, limit: 10 });
     } catch (error) {
       console.log("error", error);
     }
@@ -36,7 +48,7 @@ const Transactions: React.FC = () => {
     setSelectedMenu("transactions");
     fetchReport();
     fetchLog()
-  }, [logPage])
+  }, [logPage, date, transactionType])
 
   useEffect(() => {
 
@@ -129,6 +141,8 @@ const Transactions: React.FC = () => {
     },
   ];
 
+  console.log(date, transactionType)
+
   return (
     <AdminLayout>
       <div className='flex'>
@@ -137,12 +151,13 @@ const Transactions: React.FC = () => {
             <h3 className='text-lg font-semibold pb-8'>Transactions</h3>
             <Card className='bg-blue-50'>
               <div className='flex gap-4 items-center'>
-                <RangePicker />
+                <RangePicker onChange={(value) => setDate(value)}  />
                 <Select
-                  defaultValue="topup"
-                  style={{ width: 120 }}
-                  onChange={(value: string) => console.log(value)}
+                  defaultValue={null}
+                  style={{ width: 200 }}
+                  onChange={(value) => setTransactionType(value)}
                   options={[
+                    { value: null, label: 'Select Transaction Type' },
                     { value: 'topup', label: 'Topup' },
                     { value: 'transfer', label: 'Transfer' },
                   ]}
