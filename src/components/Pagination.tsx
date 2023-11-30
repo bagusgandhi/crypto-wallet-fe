@@ -23,7 +23,7 @@ const Pagination: React.FC<PaginationProps> = ({ onPageChange, totalPage, page, 
             <div className="text-center mt-[40px] flex gap-4 items-center justify-center">
                 <Button disabled={page <= 1} onClick={() => onPrevPage()}>Previous</Button>
                 <span>Page <input min={1} max={totalPage} disabled={false} value={page} onChange={() => handleInputChange} type="number" className='!w-[64px] bg-slate-100 rounded text-center' /> of {totalPage}</span>
-                <Button disabled={totalPage >= page} onClick={() => onNextPage()}>Next</Button>
+                <Button disabled={totalPage >= page || !totalPage} onClick={() => onNextPage()}>Next</Button>
             </div>
         </>
     )
