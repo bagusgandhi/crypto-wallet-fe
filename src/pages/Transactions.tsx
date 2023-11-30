@@ -1,38 +1,47 @@
 import React, { useEffect, useRef } from 'react';
 import { Affix, Card, Select, Table, Tag } from 'antd';
+import { CloseOutlined } from '@ant-design/icons';
 import AdminLayout from '../layouts/Admin';
 import { useDashboardStore } from '../store/dashboard';
 import type { ColumnsType } from 'antd/es/table';
-import { useTransactionLog, useTransactionReport } from '../services/transactionService';
+import { useTransactionLog, useTransactionReport, useTransactionLogByUser, useTransactionReportByUser } from '../services/transactionService';
 import ApexCharts from 'apexcharts';
 import useTransactionStore from '../store/transaction';
 import Pagination from '../components/Pagination';
 import { DatePicker } from 'antd';
+import ShowDetail from '../components/ShowDetail';
+import toast from 'react-hot-toast';
 
 const { RangePicker } = DatePicker;
 
 const Transactions: React.FC = () => {
   const { setSelectedMenu, showDetail, setshowDetail, setDetailKey, detailKey } = useDashboardStore();
-  const { 
-      series, 
-      log, 
-      nextLogPage, 
-      prevLogPage, 
-      logPage, 
-      totalLogPage, 
-      setLogPage, 
-      date, 
-      setDate, 
-      transactionType,
-      setTransactionType
-     } = useTransactionStore();
+  const {
+    series,
+    log,
+    nextLogPage,
+    prevLogPage,
+    logPage,
+    totalLogPage,
+    setLogPage,
+    date,
+    setDate,
+    transactionType,
+    setTransactionType,
+    transactionDetailUser,
+    setTransactionDetailUser,
+    logPageByUser,
+    setLogPageByUser,
+    transactionTypeByUser,
+    dateByUser
+  } = useTransactionStore();
   const chartRef = useRef(null);
 
   const fetchReport = async () => {
     try {
       await useTransactionReport({ from: date && date.split('_')[0], to: date && date.split('_')[1], transaction_type: transactionType });
-    } catch (error) {
-      console.log("error", error);
+    } catch (error: any) {
+      toast.error("Something went wrong!");
     }
   }
 
@@ -40,7 +49,23 @@ const Transactions: React.FC = () => {
     try {
       await useTransactionLog({ from: date && date.split('_')[0], to: date && date.split('_')[1], transaction_type: transactionType, page: logPage, limit: 10 });
     } catch (error) {
-      console.log("error", error);
+      toast.error("Something went wrong!");
+    }
+  }
+
+  const fetchLogByUser = async () => {
+    try {
+      await useTransactionLogByUser({ user_id: transactionDetailUser?.user_id, from: dateByUser && dateByUser.split('_')[0], to: dateByUser && dateByUser.split('_')[1], transaction_type: transactionTypeByUser, page: logPageByUser, limit: 10 });
+    } catch (error) {
+      toast.error("Something went wrong!");
+    }
+  }
+
+  const fetchReportByUser = async () => {
+    try {
+      await useTransactionReportByUser({ user_id: transactionDetailUser?.user_id, from: dateByUser && dateByUser.split('_')[0], to: dateByUser && dateByUser.split('_')[1], transaction_type: transactionTypeByUser });
+    } catch (error) {
+      toast.error("Something went wrong!");
     }
   }
 
@@ -48,6 +73,7 @@ const Transactions: React.FC = () => {
     setSelectedMenu("transactions");
     fetchReport();
     fetchLog()
+    setshowDetail(false)
   }, [logPage, date, transactionType])
 
   useEffect(() => {
@@ -61,7 +87,7 @@ const Transactions: React.FC = () => {
         data: series ? series[1]['data'].map((data: Array<any>) => data[0]) : []
       }],
       chart: {
-        height: 350,
+        height: 450,
         type: 'area'
       },
       dataLabels: {
@@ -79,6 +105,7 @@ const Transactions: React.FC = () => {
           format: 'dd/MM/yy HH:mm'
         },
       },
+      colors: ['#f07f06', '#bce8ad'],
     };
 
 
@@ -141,6 +168,14 @@ const Transactions: React.FC = () => {
     },
   ];
 
+  useEffect(() => {
+    if (transactionDetailUser) {
+      fetchLogByUser()
+      fetchReportByUser()
+    }
+  }, [transactionDetailUser])
+
+
 
   return (
     <AdminLayout>
@@ -150,7 +185,7 @@ const Transactions: React.FC = () => {
             <h3 className='text-lg font-semibold pb-8'>Transactions</h3>
             <Card className='bg-blue-50'>
               <div className='flex gap-4 items-center'>
-                <RangePicker onChange={(value) => setDate(value)}  />
+                <RangePicker onChange={(value) => setDate(value)} />
                 <Select
                   defaultValue={null}
                   style={{ width: 200 }}
@@ -172,14 +207,24 @@ const Transactions: React.FC = () => {
                 return {
                   onClick: () => {
                     if (detailKey !== _record.id) {
-                      console.log(_record.user.id)
                       setDetailKey(_record.id);
                       setshowDetail(true);
+                      setTransactionDetailUser({
+                        transaction_id: _record.id,
+                        amount: _record.amount,
+                        transaction_type: _record.transaction_type,
+                        transaction_detail: _record.transaction_detail,
+                        timestamp: _record.timestamp,
+                        username: _record.user.username,
+                        user_id: _record.user.id,
+                        full_name: _record.user.full_name
+                      });
+                      setLogPageByUser(1);
                     } else {
                       setDetailKey(null);
                       setshowDetail(!showDetail);
+                      setLogPageByUser(1);
                     }
-                    // console.log(detailKey)
                   },
                 };
               }}
@@ -194,17 +239,15 @@ const Transactions: React.FC = () => {
         </div>
 
         {showDetail ? (
-          <Affix offsetTop={75} className='!bg-blue-50  w-1/2 z-20'>
-            <div className='p-8'>
-              <div className='flex gap-4'>
+          <Affix offsetTop={75} className={`!bg-blue-50  w-1/2 z-20$`}>
+            <div className='p-8 overflow-auto h-[calc(65%-100px)]'>
+              <Affix>
 
-                <h4>Transaction Detail</h4>
-              </div>
-
-              <div className='flex gap-4'>
-
-                <h4>Transaction History</h4>
-              </div>
+                <div className='flex justify-end py-2 pr-8' >
+                  <button onClick={() => setshowDetail(!showDetail)}><CloseOutlined /></button>
+                </div>
+              </Affix>
+              <ShowDetail log={fetchLogByUser} report={fetchReportByUser} />
             </div>
           </Affix>
         ) : (<></>)}
