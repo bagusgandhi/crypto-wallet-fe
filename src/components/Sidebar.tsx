@@ -1,8 +1,7 @@
 import React from 'react';
 import { Layout, Menu, Affix } from "antd";
 import {
-    DashboardOutlined,
-    UserOutlined,
+
     LineChartOutlined,
     DollarOutlined
 } from '@ant-design/icons';
@@ -27,33 +26,33 @@ const Sidebar: React.FC = () => {
                     selectedKeys={[selectedMenu]}
                     theme="light"
                     items={[
-                        {
-                            key: 'dashboard',
-                            icon: <DashboardOutlined />,
-                            label: (<>
-                                <Link to="/" onClick={() => setSelectedMenu("dashboard")}>
-                                    Dashboard
-                                </Link>
-                            </>),
-                        },
+                        // {
+                        //     key: 'dashboard',
+                        //     icon: <DashboardOutlined />,
+                        //     label: (<>
+                        //         <Link to="/" onClick={() => setSelectedMenu("dashboard")}>
+                        //             Dashboard
+                        //         </Link>
+                        //     </>),
+                        // },
                         {
                             key: 'transactions',
                             icon: <LineChartOutlined />,
                             label: (<>
-                                <Link to="/transactions" onClick={() => setSelectedMenu("transactions")} >
+                                <Link to="/" onClick={() => setSelectedMenu("transactions")} >
                                     Transactions
                                 </Link>
                             </>),
                         },
-                        {
-                            key: 'user',
-                            icon: <UserOutlined />,
-                            label: (<>
-                                <Link to="/users" onClick={() => setSelectedMenu("user")} >
-                                    Users
-                                </Link>
-                            </>),
-                        },
+                        // {
+                        //     key: 'user',
+                        //     icon: <UserOutlined />,
+                        //     label: (<>
+                        //         <Link to="/users" onClick={() => setSelectedMenu("user")} >
+                        //             Users
+                        //         </Link>
+                        //     </>),
+                        // },
                     ]}
                 />
             </Sider>
