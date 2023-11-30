@@ -18,7 +18,7 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     detailKey: null,
     selectedMenu: "dashboard",
     setCollapsed: () => set((state) => ({ collapsed: !state.collapsed })),
-    setshowDetail: (show) => set((state) => ({ showDetail: show })),
+    setshowDetail: (show) => set(() => ({ showDetail: show })),
     setSelectedMenu: (selected) => set(() => ({ selectedMenu: selected })),
     setDetailKey: (key) => set(() => ({ detailKey: key }))
 
