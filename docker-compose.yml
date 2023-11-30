@@ -4,6 +4,7 @@ services:
     container_name: crypto-wallet
     build:
       context: .
+    restart: always
     ports:
       - 8012:3000
     env_file:
