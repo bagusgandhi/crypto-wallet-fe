@@ -30,9 +30,9 @@ const App: React.FC = () => {
         <Routes>
           <Route path='login' element={isAuth ? <Navigate to="/" /> : <Login />} />
           <Route element={<ProtectedRoute auth={isAuth} />}>
-            <Route path='/' element={<Dashboard />} />
-            <Route path='/transactions' element={<Transactions />} />
-            <Route path='/users' element={<Users />} />
+            <Route path='/' element={<Transactions />} />
+            {/* <Route path='/transactions' element={<Transactions />} /> */}
+            {/* <Route path='/users' element={<Users />} /> */}
           </Route>
           <Route path="*" element={<><div>Not found!</div></>} />
         </Routes>
