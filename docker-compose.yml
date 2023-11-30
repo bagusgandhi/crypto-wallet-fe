@@ -1,0 +1,11 @@
+version: '3'
+services:
+  crypto-wallet:
+    container_name: crypto-wallet
+    build:
+      context: .
+    ports:
+      - 8012:3000
+    env_file:
+      - .env.production
+
