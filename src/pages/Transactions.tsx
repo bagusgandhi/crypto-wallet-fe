@@ -141,7 +141,6 @@ const Transactions: React.FC = () => {
     },
   ];
 
-  console.log(date, transactionType)
 
   return (
     <AdminLayout>
