@@ -3,6 +3,7 @@ import { login } from '../services/authService';
 import { Form, Input, Button } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import toast, { Toaster } from 'react-hot-toast';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -11,13 +12,14 @@ const Login: React.FC = () => {
       await login(values);
       navigate('/');
     } catch (error: any) {
+      toast.error(error.message);
       navigate('/login');
-      console.error(error);
     }
   };
 
   return (
     <>
+      <Toaster />
       <div className='bg-slate-100'>
         <div className='container mx-auto h-screen p-4 flex items-center'>
           <div className='w-1/4 mx-auto'>
