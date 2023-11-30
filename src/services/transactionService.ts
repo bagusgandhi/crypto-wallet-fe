@@ -15,14 +15,13 @@ interface TransactionParams {
 export const useTransactionReport = async (params: TransactionParams) => {
     try {
         const token = Cookies.get('token');
-        const response = await axios.get('http://localhost:3000/api/v1/transactions/report', {
+        const response = await axios.get(`${import.meta.env.VITE_API_ENDPOINT}transactions/report`, {
             headers: { Authorization: `Bearer ${token}` },
             params: { ...params}
         });
 
         useTransactionStore.getState().setSeries(response.data.series);
 
-        // console.log(response.data)
         return response.data;
     } catch (error: any) {
         throw new Error(error.response.data.message)
@@ -32,7 +31,7 @@ export const useTransactionReport = async (params: TransactionParams) => {
 export const useTransactionLog = async (params: TransactionParams) => {
     try {
         const token = Cookies.get('token');
-        const response = await axios.get('http://localhost:3000/api/v1/transactions/log', {
+        const response = await axios.get(`${import.meta.env.VITE_API_ENDPOINT}transactions/log`, {
             headers: { Authorization: `Bearer ${token}` },
             params: { ...params}
         });

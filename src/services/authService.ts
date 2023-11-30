@@ -4,7 +4,7 @@ import axios from 'axios';
 
 export const login = async (credentials: { username: string; password: string }) => {
     try {
-      const response = await axios.post('http://localhost:3000/api/v1/auth/login', credentials, {
+      const response = await axios.post(`${import.meta.env.VITE_API_ENDPOINT}auth/login`, credentials, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -27,7 +27,7 @@ export const login = async (credentials: { username: string; password: string })
 export const useUserProfile = async () => {
     try {
         const token = Cookies.get('token');
-        const response = await axios.get('http://localhost:3000/api/v1/user/profile', {
+        const response = await axios.get(`${import.meta.env.VITE_API_ENDPOINT}user/profile`, {
             headers: { Authorization: `Bearer ${token}` },
         });
 
