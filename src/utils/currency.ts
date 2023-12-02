@@ -1,0 +1,1 @@
+export const currencyIDR = (amount: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(Math.abs(amount))
