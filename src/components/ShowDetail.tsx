@@ -4,6 +4,9 @@ import { Card, Table, Tag, DatePicker, Select } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import Pagination from '../components/Pagination';
 import ApexCharts from 'apexcharts';
+import { chartOptions } from '../utils/chart';
+import { currencyIDR } from '../utils/currency';
+import { dateFormat } from '../utils/date';
 
 const { RangePicker } = DatePicker;
 
@@ -32,36 +35,7 @@ const showDetail: React.FC<ShowDetailProps> = ({ log, report }) => {
     useEffect(() => {
 
         if (chartRefByUser.current && seriesByUser) {
-            const options = {
-                series: [{
-                    name: 'transfer',
-                    data: seriesByUser ? seriesByUser[0]['data'].map((data: Array<any>) => data[0]) : []
-                }, {
-                    name: 'topup',
-                    data: seriesByUser ? seriesByUser[1]['data'].map((data: Array<any>) => data[0]) : []
-                }],
-                chart: {
-                    height: 320,
-                    type: 'area'
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                stroke: {
-                    curve: 'smooth'
-                },
-                xaxis: {
-                    type: 'datetime',
-                    categories: seriesByUser ? [...seriesByUser[0]['data'].map((data: Array<any>) => data[1]), ...seriesByUser[1]['data'].map((data: Array<any>) => data[1])] : []
-                },
-                tooltip: {
-                    x: {
-                        format: 'dd/MM/yy HH:mm'
-                    },
-                },
-                colors: ['#f07f06', '#bce8ad'],
-            };
-            const chart = new ApexCharts(chartRefByUser.current, options);
+            const chart = new ApexCharts(chartRefByUser.current, chartOptions(seriesByUser!));
             chart.render();
             
             return () => {
@@ -101,7 +75,7 @@ const showDetail: React.FC<ShowDetailProps> = ({ log, report }) => {
             title: 'Amount',
             dataIndex: 'amount',
             key: 'amount',
-            render: (text) => <a>{text}</a>,
+            render: (amount) => <a className={`${amount < 0 ? '!text-red-400' : ''}`}>{currencyIDR(amount)}</a>,
         },
         {
             title: 'Transaction',
@@ -117,7 +91,7 @@ const showDetail: React.FC<ShowDetailProps> = ({ log, report }) => {
             title: 'Transaction Time',
             dataIndex: 'timestamp',
             key: 'timestamp',
-            render: (text) => <a>{new Date(text).toString()}</a>,
+            render: (timestamp) => <a>{dateFormat(timestamp)}</a>,
         },
     ];
 
@@ -163,7 +137,7 @@ const showDetail: React.FC<ShowDetailProps> = ({ log, report }) => {
                 </Card>
 
                 <Card>
-                    <h3 className='mb-8 font-semibold'>Transaction History</h3>
+                    <h3 className='mb-8 font-semibold'>Transaction History From {transactionDetailUser?.full_name}</h3>
                     <div className='flex items-center gap-4'>
 
                         <RangePicker onChange={(value) => setDateByUser(value)} />
