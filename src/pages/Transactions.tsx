@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { Affix, Card, Select, Table, Tag } from 'antd';
+import React, { useEffect, useRef, useState } from 'react';
+import { Affix, Card, Select, Spin, Table, Tag } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
 import AdminLayout from '../layouts/Admin';
 import { useDashboardStore } from '../store/dashboard';
@@ -11,11 +11,15 @@ import Pagination from '../components/Pagination';
 import { DatePicker } from 'antd';
 import ShowDetail from '../components/ShowDetail';
 import toast from 'react-hot-toast';
+import { chartOptions } from '../utils/chart';
+import { currencyIDR } from '../utils/currency';
+import { dateFormat } from '../utils/date';
 
 const { RangePicker } = DatePicker;
 
 const Transactions: React.FC = () => {
   const { setSelectedMenu, showDetail, setshowDetail, setDetailKey, detailKey } = useDashboardStore();
+  const [loading, setLoading] = useState<boolean>(true);
   const {
     series,
     log,
@@ -76,40 +80,11 @@ const Transactions: React.FC = () => {
     setshowDetail(false)
   }, [logPage, date, transactionType])
 
+
+
   useEffect(() => {
 
-    const options = {
-      series: [{
-        name: 'transfer',
-        data: series ? series[0]['data'].map((data: Array<any>) => data[0]) : []
-      }, {
-        name: 'topup',
-        data: series ? series[1]['data'].map((data: Array<any>) => data[0]) : []
-      }],
-      chart: {
-        height: 450,
-        type: 'area'
-      },
-      dataLabels: {
-        enabled: false
-      },
-      stroke: {
-        curve: 'smooth'
-      },
-      xaxis: {
-        type: 'datetime',
-        categories: series ? [...series[0]['data'].map((data: Array<any>) => data[1]), ...series[1]['data'].map((data: Array<any>) => data[1])] : []
-      },
-      tooltip: {
-        x: {
-          format: 'dd/MM/yy HH:mm'
-        },
-      },
-      colors: ['#f07f06', '#bce8ad'],
-    };
-
-
-    const chart = new ApexCharts(chartRef.current, options);
+    const chart = new ApexCharts(chartRef.current, chartOptions(series!));
     chart.render();
 
     return () => {
@@ -117,12 +92,18 @@ const Transactions: React.FC = () => {
     };
   }, [series, showDetail]);
 
+  useEffect(() => {
+    setLoading(false)
+  }, [log])
+
 
   const handlePrevPage = () => {
+    setLoading(true)
     prevLogPage()
   }
 
   const handleNextPage = () => {
+    setLoading(true)
     nextLogPage()
   }
 
@@ -137,6 +118,7 @@ const Transactions: React.FC = () => {
     timestamp: string;
   }
 
+
   const columns: ColumnsType<DataType> = [
     {
       title: 'Username',
@@ -148,7 +130,7 @@ const Transactions: React.FC = () => {
       title: 'Amount',
       dataIndex: 'amount',
       key: 'amount',
-      render: (text) => <a>{text}</a>,
+      render: (amount) => <a className={`${amount < 0 ? '!text-red-400' : ''}`}>{currencyIDR(amount)}</a>,
     },
     {
       title: 'Transaction',
@@ -164,7 +146,7 @@ const Transactions: React.FC = () => {
       title: 'Transaction Time',
       dataIndex: 'timestamp',
       key: 'timestamp',
-      render: (text) => <a>{new Date(text).toString()}</a>,
+      render: (timestamp) => <a>{dateFormat(timestamp)}</a>,
     },
   ];
 
@@ -199,36 +181,39 @@ const Transactions: React.FC = () => {
               </div>
             </Card>
             <div ref={chartRef} className='my-4 !z-0'></div>
-            <Table
-              columns={columns}
-              dataSource={log!}
-              pagination={false}
-              onRow={(_record) => {
-                return {
-                  onClick: () => {
-                    if (detailKey !== _record.id) {
-                      setDetailKey(_record.id);
-                      setshowDetail(true);
-                      setTransactionDetailUser({
-                        transaction_id: _record.id,
-                        amount: _record.amount,
-                        transaction_type: _record.transaction_type,
-                        transaction_detail: _record.transaction_detail,
-                        timestamp: _record.timestamp,
-                        username: _record.user.username,
-                        user_id: _record.user.id,
-                        full_name: _record.user.full_name
-                      });
-                      setLogPageByUser(1);
-                    } else {
-                      setDetailKey(null);
-                      setshowDetail(!showDetail);
-                      setLogPageByUser(1);
-                    }
-                  },
-                };
-              }}
-            />
+            <Spin spinning={loading}>
+              <Table
+                columns={columns}
+                dataSource={log!}
+                pagination={false}
+                onRow={(_record) => {
+                  return {
+                    onClick: () => {
+                      if (detailKey !== _record.id) {
+                        setDetailKey(_record.id);
+                        setshowDetail(true);
+                        setTransactionDetailUser({
+                          transaction_id: _record.id,
+                          amount: _record.amount,
+                          transaction_type: _record.transaction_type,
+                          transaction_detail: _record.transaction_detail,
+                          timestamp: _record.timestamp,
+                          username: _record.user.username,
+                          user_id: _record.user.id,
+                          full_name: _record.user.full_name
+                        });
+                        setLogPageByUser(1);
+                      } else {
+                        setDetailKey(null);
+                        setshowDetail(!showDetail);
+                        setLogPageByUser(1);
+                      }
+                    },
+                  };
+                }}
+              />
+
+            </Spin>
             <Pagination
               onPageChange={(page: number) => setLogPage(page)}
               totalPage={totalLogPage}
@@ -239,17 +224,16 @@ const Transactions: React.FC = () => {
         </div>
 
         {showDetail ? (
-          <Affix offsetTop={75} className={`!bg-blue-50  w-1/2 z-20$`}>
-            <div className='p-8 overflow-auto h-[calc(65%-100px)]'>
-              <Affix>
-
-                <div className='flex justify-end py-2 pr-8' >
-                  <button onClick={() => setshowDetail(!showDetail)}><CloseOutlined /></button>
+          <>
+            <Affix offsetTop={75} className={`!bg-blue-50  w-1/2 z-20$`}>
+              <div className='p-8 overflow-auto h-[calc(60%-200px)]'>
+                <div className='flex justify-end py-2' >
+                  <button className='text-red-400 font-bold' onClick={() => setshowDetail(!showDetail)}><CloseOutlined /></button>
                 </div>
-              </Affix>
-              <ShowDetail log={fetchLogByUser} report={fetchReportByUser} />
-            </div>
-          </Affix>
+                <ShowDetail log={fetchLogByUser} report={fetchReportByUser} />
+              </div>
+            </Affix>
+          </>
         ) : (<></>)}
 
 
