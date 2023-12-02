@@ -95,7 +95,7 @@ const useTransactionStore = create<TransactionState>((set) => ({
     logPageByUser: 1,
     totalLogPageByUser: 1,
     setLogPageByUser: (page: number) => set(() => ({ logPageByUser: page })),
-    setTotalLogPageByUser: (total) => set(() => ({ totalLogPage: total })),
+    setTotalLogPageByUser: (total) => set(() => ({ totalLogPageByUser: total })),
     nextLogPageByUser: () => set((state) => ({ logPageByUser: state.logPageByUser + 1 })),
     prevLogPageByUser: () => set((state) => ({ logPageByUser: state.logPageByUser - 1 })),
 
