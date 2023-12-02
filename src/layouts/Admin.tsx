@@ -14,7 +14,7 @@ const AdminLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
                 <Sidebar />
                 <Layout>
                     <Navbar />
-                    <Content className="!w-full bg-white">
+                    <Content className="!w-full bg-white mt-16">
                         <div>
                             {children}
                         </div>
