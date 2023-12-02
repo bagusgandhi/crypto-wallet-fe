@@ -15,7 +15,6 @@ const App: React.FC = () => {
     try {
       await useUserProfile();
     } catch (error: any) {
-      console.log("error", error);
       logout();
     }
   };
