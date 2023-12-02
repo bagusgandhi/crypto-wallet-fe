@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Button, Affix } from "antd";
+import { Layout, Button } from "antd";
 import {
     MenuFoldOutlined,
     MenuUnfoldOutlined,
@@ -14,11 +14,11 @@ const Navbar: React.FC = () => {
     const { collapsed, setCollapsed } = useDashboardStore()
 
     return (
-        <Affix offsetTop={0} className='z-30'>
+        <>
             <Header
-                className="!bg-white !px-4 !py-4  w-full z-20 border-b-2 border-black border-opacity-10"
+                className="!bg-white !px-4 !py-4  z-20 border-b-2 border-black border-opacity-10 !fixed !w-full !top-0 "
             >
-                <div className='flex justify-between items-center'>
+                <div className='flex justify-between items-center container'>
                     <Button
                         type="text"
                         icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -26,6 +26,7 @@ const Navbar: React.FC = () => {
                     />
 
                     <Button
+                        className='!fixed !right-0 mx-4'
                         type="text"
                         danger
                         icon={<LogoutOutlined />}
@@ -35,7 +36,7 @@ const Navbar: React.FC = () => {
                     </Button>
                 </div>
             </Header>
-        </Affix>
+        </>
     )
 }
 
