@@ -18,8 +18,6 @@ const Pagination: React.FC<PaginationProps> = ({ onPageChange, totalPage, page, 
         }, 300
     );
 
-    console.log(totalPage, page)
-
     return (
         <>
             <div className="text-center mt-[40px] flex gap-4 items-center justify-center">
