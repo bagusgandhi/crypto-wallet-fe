@@ -1,4 +1,4 @@
-export const chartOptions = (series: Array<any>) => ({
+export const chartOptions = (series: Array<any>, height?: number) => ({
     series: [{
       name: 'transfer',
       data: series ? series[0]['data'].map((data: Array<any>) => data[0]) : []
@@ -7,7 +7,7 @@ export const chartOptions = (series: Array<any>) => ({
       data: series ? series[1]['data'].map((data: Array<any>) => data[0]) : []
     }],
     chart: {
-      height: 450,
+      height: height ?? 400,
       type: 'line'
     },
     dataLabels: {
