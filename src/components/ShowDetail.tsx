@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import useTransactionStore from '../store/transaction';
-import { Card, Table, Tag, DatePicker, Select } from 'antd';
+import { Card, Table, Tag, DatePicker, Select, Spin } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import Pagination from '../components/Pagination';
 import ApexCharts from 'apexcharts';
@@ -31,31 +31,37 @@ const showDetail: React.FC<ShowDetailProps> = ({ log, report }) => {
         setDateByUser,
     } = useTransactionStore();
     const chartRefByUser = useRef(null);
+    const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
 
         if (chartRefByUser.current && seriesByUser) {
-            const chart = new ApexCharts(chartRefByUser.current, chartOptions(seriesByUser!));
+            const chart = new ApexCharts(chartRefByUser.current, chartOptions(seriesByUser!, 200));
             chart.render();
-            
+
             return () => {
                 chart.destroy();
             };
         }
     }, [seriesByUser]);
-    
+
 
     useEffect(() => {
         log();
         report();
     }, [logPageByUser, dateByUser, transactionTypeByUser]);
 
+    useEffect(() => {
+        setLoading(false)
+    }, [logByUser])
 
     const handlePrevPage = () => {
+        setLoading(true)
         prevLogPageByUser()
     }
 
     const handleNextPage = () => {
+        setLoading(true)
         nextLogPageByUser()
     }
 
@@ -153,11 +159,13 @@ const showDetail: React.FC<ShowDetailProps> = ({ log, report }) => {
                         />
                     </div>
                     <div ref={chartRefByUser} className='my-4 !z-0'></div>
-                    <Table
-                        columns={columns}
-                        dataSource={logByUser!}
-                        pagination={false}
-                    />
+                    <Spin spinning={loading}>
+                        <Table
+                            columns={columns}
+                            dataSource={logByUser!}
+                            pagination={false}
+                        />
+                    </Spin>
                     <Pagination
                         onPageChange={(page: number) => setLogPageByUser(page)}
                         totalPage={totalLogPageByUser}
