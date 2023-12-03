@@ -1,3 +1,5 @@
+import { currencyIDR } from "./currency";
+
 export const chartOptions = (series: Array<any>, height?: number) => ({
     series: [{
       name: 'transfer',
@@ -16,11 +18,18 @@ export const chartOptions = (series: Array<any>, height?: number) => ({
     stroke: {
       show: true,
       lineCap: 'butt',
-      width: 2
+      width: 2,
     },
     xaxis: {
       type: 'datetime',
       categories: series ? [...series[0]['data'].map((data: Array<any>) => data[1]), ...series[1]['data'].map((data: Array<any>) => data[1])] : []
+    },
+    yaxis: {
+      labels: {
+        formatter : function (value: number){
+          return value && currencyIDR(value)
+        }
+      }
     },
     tooltip: {
       x: {
