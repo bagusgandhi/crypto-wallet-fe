@@ -1,19 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Affix, Card, Select, Spin, Table, Tag } from 'antd';
+import { Affix, Button, Card, Select, Spin, Table, Tag } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
 import AdminLayout from '../layouts/Admin';
 import { useDashboardStore } from '../store/dashboard';
 import type { ColumnsType } from 'antd/es/table';
-import { useTransactionLog, useTransactionReport, useTransactionLogByUser, useTransactionReportByUser } from '../services/transactionService';
+import { useTransactionLog, useTransactionReport } from '../services/transactionService';
 import ApexCharts from 'apexcharts';
 import useTransactionStore from '../store/transaction';
-import Pagination from '../components/Pagination';
 import { DatePicker } from 'antd';
 import ShowDetail from '../components/ShowDetail';
 import toast from 'react-hot-toast';
 import { chartOptions } from '../utils/chart';
 import { currencyIDR } from '../utils/currency';
 import { dateFormat } from '../utils/date';
+import dayjs from 'dayjs';
 
 const { RangePicker } = DatePicker;
 
@@ -23,27 +23,34 @@ const Transactions: React.FC = () => {
   const {
     series,
     log,
-    nextLogPage,
-    prevLogPage,
-    logPage,
-    totalLogPage,
-    setLogPage,
     date,
     setDate,
     transactionType,
     setTransactionType,
     transactionDetailUser,
     setTransactionDetailUser,
-    logPageByUser,
     setLogPageByUser,
     transactionTypeByUser,
-    dateByUser
+    dateByUser,
+    setLog,
+    setLogByUser,
+    pushLog,
+    setSeries,
+    setSeriesByUser
   } = useTransactionStore();
   const chartRef = useRef(null);
 
   const fetchReport = async () => {
     try {
-      await useTransactionReport({ from: date && date.split('_')[0], to: date && date.split('_')[1], transaction_type: transactionType });
+      const param = { 
+        from: date && date.split('_')[0], 
+        to: date && date.split('_')[1], 
+        transaction_type: transactionType,
+      }
+
+      const series = await useTransactionReport(param);
+      setSeries(series);
+
     } catch (error: any) {
       toast.error("Something went wrong!");
     }
@@ -51,7 +58,16 @@ const Transactions: React.FC = () => {
 
   const fetchLog = async () => {
     try {
-      await useTransactionLog({ from: date && date.split('_')[0], to: date && date.split('_')[1], transaction_type: transactionType, page: logPage, limit: 10 });
+      const param = { 
+        from: date && date.split('_')[0], 
+        to: date && date.split('_')[1], 
+        transaction_type: transactionType,
+        limit: 10 
+      }
+
+      const logsData = await useTransactionLog(param);
+      setLog(logsData);
+
     } catch (error) {
       toast.error("Something went wrong!");
     }
@@ -59,7 +75,17 @@ const Transactions: React.FC = () => {
 
   const fetchLogByUser = async () => {
     try {
-      await useTransactionLogByUser({ user_id: transactionDetailUser?.user_id, from: dateByUser && dateByUser.split('_')[0], to: dateByUser && dateByUser.split('_')[1], transaction_type: transactionTypeByUser, page: logPageByUser, limit: 10 });
+      const param = { 
+        from: dateByUser && dateByUser.split('_')[0], 
+        to: dateByUser && dateByUser.split('_')[1], 
+        transaction_type: transactionTypeByUser,
+        user_id: transactionDetailUser?.user_id,
+        limit: 10 
+      }
+
+      const logsDataByUser = await useTransactionLog(param);
+      setLogByUser(logsDataByUser);
+
     } catch (error) {
       toast.error("Something went wrong!");
     }
@@ -67,44 +93,107 @@ const Transactions: React.FC = () => {
 
   const fetchReportByUser = async () => {
     try {
-      await useTransactionReportByUser({ user_id: transactionDetailUser?.user_id, from: dateByUser && dateByUser.split('_')[0], to: dateByUser && dateByUser.split('_')[1], transaction_type: transactionTypeByUser });
+      const param = { 
+        from: dateByUser && dateByUser.split('_')[0], 
+        to: dateByUser && dateByUser.split('_')[1], 
+        transaction_type: transactionTypeByUser,
+      }
+
+      const seriesDataByUser = await useTransactionReport(param);
+      setSeriesByUser(seriesDataByUser);
     } catch (error) {
       toast.error("Something went wrong!");
     }
   }
 
+
   useEffect(() => {
     setSelectedMenu("transactions");
+
+    fetchLog();
     fetchReport();
-    fetchLog()
     setshowDetail(false)
-  }, [logPage, date, transactionType])
+  }, [date]);
 
 
 
   useEffect(() => {
-
-    const chart = new ApexCharts(chartRef.current, chartOptions(series!));
-    chart.render();
-
-    return () => {
-      chart.destroy();
-    };
+    if (chartRef.current && series) {
+      const chart = new ApexCharts(chartRef.current, chartOptions(series!));
+      chart.render();
+  
+      return () => {
+        chart.destroy();
+      };
+    }
   }, [series, showDetail]);
 
   useEffect(() => {
     setLoading(false)
   }, [log])
 
+  const handleLoadMore = async () => {
+    try {
+      setLoading(true);
+      setshowDetail(false);
 
-  const handlePrevPage = () => {
-    setLoading(true)
-    prevLogPage()
+      if(log){
+        const cursorLog: string = log[log.length -1].timestamp;
+        const nextLogs = await useTransactionLog({ cursor: cursorLog, transaction_type: transactionType, limit: 10 });
+        pushLog(nextLogs)
+      }
+
+    } catch (error) {
+      toast.error("Something went wrong!");
+    }
+  }
+  
+  const handleRangePicker  = async (value: any) => {
+    try {
+      setLoading(true);
+      setDate(value);
+
+      const dates = value ? value.map((date: string | number | Date | dayjs.Dayjs | null | undefined) => dayjs(date).format("YYYY-MM-DD")).join('_') : null
+
+      const param = { 
+        from: dates && dates.split('_')[0], 
+        to: dates && dates.split('_')[1], 
+        transaction_type: transactionType,
+        limit: 10 
+      }
+
+      const logs = await useTransactionLog(param);
+      const series = await useTransactionReport({...param, limit: undefined});
+
+      setLog(logs);
+      setSeries(series);
+
+    } catch (error) {
+      toast.error("Something went wrong!");
+    }
   }
 
-  const handleNextPage = () => {
-    setLoading(true)
-    nextLogPage()
+  const handleTransactionType  = async (value: string) => {
+    try {
+      setLoading(true);
+      setTransactionType(value);
+      
+      const param = { 
+        from: date && date.split('_')[0], 
+        to: date && date.split('_')[1], 
+        transaction_type: value,
+        limit: 10 
+      }
+
+      const logs = await useTransactionLog(param);
+      const series = await useTransactionReport({...param, limit: undefined});
+
+      setLog(logs);
+      setSeries(series);
+
+    } catch (error) {
+      toast.error("Something went wrong!");
+    }
   }
 
   interface DataType {
@@ -157,7 +246,7 @@ const Transactions: React.FC = () => {
     }
   }, [transactionDetailUser])
 
-
+  console.log(log);
 
   return (
     <AdminLayout>
@@ -167,11 +256,11 @@ const Transactions: React.FC = () => {
             <h3 className='text-lg font-semibold pb-8'>Transactions</h3>
             <Card className='bg-blue-50'>
               <div className='flex gap-4 items-center'>
-                <RangePicker onChange={(value) => setDate(value)} />
+                <RangePicker onChange={handleRangePicker} />
                 <Select
                   defaultValue={null}
                   style={{ width: 200 }}
-                  onChange={(value) => setTransactionType(value)}
+                  onChange={handleTransactionType}
                   options={[
                     { value: null, label: 'Select Transaction Type' },
                     { value: 'topup', label: 'Topup' },
@@ -214,12 +303,12 @@ const Transactions: React.FC = () => {
               />
 
             </Spin>
-            <Pagination
-              onPageChange={(page: number) => setLogPage(page)}
-              totalPage={totalLogPage}
-              page={logPage} onNextPage={() => handleNextPage()}
-              onPrevPage={() => handlePrevPage()}
-            />
+
+            <div className='flex justify-center p-8'>
+              {log?.length ? (
+                  <Button loading={loading} type='primary' className='bg-blue-400' onClick={() => handleLoadMore()}>Load More</Button>
+              ) : (<></>) }
+            </div>
           </div>
         </div>
 
