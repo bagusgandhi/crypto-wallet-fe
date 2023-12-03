@@ -24,10 +24,14 @@ interface TransactionState {
     // tabel log transaction 
     log: any[] | null;
     setLog: (log: any[]) => void;
+    pushLog: (log: any[]) => void;
+
 
     // tabel log by user
     logByUser: any[] | null;
     setLogByUser: (logByUser: any[]) => void;
+    pushLogByUser: (logByUser: any[]) => void;
+
 
     // table log pagination
     logPage: number;
@@ -37,6 +41,9 @@ interface TransactionState {
     prevLogPage: () => void;
     setTotalLogPage: (total: number) => void;
 
+    cursor: string | null;
+    setCursor: (cursor: string | null) => void;
+
     // table log paginationby user
     logPageByUser: number;
     totalLogPageByUser: number;
@@ -44,6 +51,9 @@ interface TransactionState {
     nextLogPageByUser: () => void;
     prevLogPageByUser: () => void;
     setTotalLogPageByUser: (total: number) => void;
+
+    cursorByUser: string | null;
+    setCursorByUser: (cursor: string) => void;
 
     // filter date picker
     date: string | null;
@@ -82,6 +92,7 @@ const useTransactionStore = create<TransactionState>((set) => ({
     // tabel log transaction 
     log: [],
     setLog: (log) => set(() => ({ log })),
+    pushLog: (newLog) => set((state) => ({ log :[...state.log!, ...newLog] })),
 
     // table log pagination
     logPage: 1,
@@ -91,6 +102,9 @@ const useTransactionStore = create<TransactionState>((set) => ({
     nextLogPage: () => set((state) => ({ logPage: state.logPage + 1 })),
     prevLogPage: () => set((state) => ({ logPage: state.logPage - 1 })),
 
+    cursor: null,
+    setCursor: (cursor: string | null) => set(() => ({ cursor })),
+
     // table log pagination by  user
     logPageByUser: 1,
     totalLogPageByUser: 1,
@@ -98,6 +112,9 @@ const useTransactionStore = create<TransactionState>((set) => ({
     setTotalLogPageByUser: (total) => set(() => ({ totalLogPageByUser: total })),
     nextLogPageByUser: () => set((state) => ({ logPageByUser: state.logPageByUser + 1 })),
     prevLogPageByUser: () => set((state) => ({ logPageByUser: state.logPageByUser - 1 })),
+
+    cursorByUser: null,
+    setCursorByUser: (cursor: string) => set(() => ({ cursorByUser: cursor })),
 
     // filter date picker
     date: null,
@@ -125,6 +142,7 @@ const useTransactionStore = create<TransactionState>((set) => ({
 
     logByUser: [],
     setLogByUser: (logByUser) => set(() => ({ logByUser })),
+    pushLogByUser: (newLogByUser) => set((state) => ({ logByUser :[...state.logByUser!, ...newLogByUser] })),
 
     logByUserLoading: true,
     setLogByUserLoading: (loading) => set(() => ({ logByUserLoading: loading })),
